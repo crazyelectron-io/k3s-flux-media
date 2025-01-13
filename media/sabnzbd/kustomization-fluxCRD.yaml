@@ -9,7 +9,7 @@ spec:
   path: ./cluster/apps/media/sabnzbd/base
   sourceRef:
     kind: GitRepository
-    name: flux-system
+    name: media
   interval: 10m
   prune: true
   wait: true
