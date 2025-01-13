@@ -1,0 +1,112 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+  name: readarr-media-pv
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 10Mi # Dummy value
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: readarr.media
+    volumeAttributes:
+      source: '//${CONFIG_NFS_SERVER_IP_ADDRESS}/media'
+    nodeStageSecretRef:
+      name: smb-creds-media
+      namespace: kube-system
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: readarr-media-pvc
+spec:
+  volumeName: readarr-media-pv
+  storageClassName: ""
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Mi # Dummy value
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+  name: readarr-backup-pv
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 10Mi # Dummy value
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: readarr.backup
+    volumeAttributes:
+      source: '//${CONFIG_NFS_SERVER_IP_ADDRESS}/media-backup/readarr'
+    nodeStageSecretRef:
+      name: smb-creds-media
+      namespace: kube-system
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: readarr-backup-pvc
+spec:
+  volumeName: readarr-backup-pv
+  storageClassName: ""
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Mi # Dummy value
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+  name: readarr-config-pv
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 100Mi # Dummy value
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - nobrl
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: readarr.config
+    volumeAttributes:
+      source: '//${CONFIG_NFS_SERVER_IP_ADDRESS}/media/readarr-config'
+    nodeStageSecretRef:
+      name: smb-creds-media
+      namespace: kube-system
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: readarr-config-pvc
+spec:
+  volumeName: readarr-config-pv
+  storageClassName: ""
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Mi # Dummy value

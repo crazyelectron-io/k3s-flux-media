@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/kustomization-kustomize-v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: media-readarr
+  namespace: flux-system
+spec:
+  path: ./cluster/apps/media/readarr/base
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  interval: 10m
+  prune: true
+  wait: true
+  dependsOn:
+    - name: kube-system-csi-driver-smb
+    - name: longhorn-system-longhorn
+    - name: traefik-traefik

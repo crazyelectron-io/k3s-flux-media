@@ -1,0 +1,67 @@
+# Create SABnzbd PV for media files SMB share
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+  name: sabnzbd-downloads-pv
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 6Ti # Dummy value
+  accessModes:
+    - ReadWriteMany
+  # storageClassName: smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+  csi:
+    driver: smb.csi.k8s.io
+    # volumeHandle format: {smb-server-address}#{sub-dir-name}#{share-name}
+    # make sure this value is unique for every share in the cluster
+    volumeHandle: media#download
+    volumeAttributes:
+      source: '//${CONFIG_NFS_SERVER_IP_ADDRESS}/media/usenet/complete'
+    nodeStageSecretRef:
+      name: smb-creds-media
+      namespace: kube-system
+---
+# Create SABnzbd PVC for configuration files
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: sabnzbd-config-pvc
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 300Mi
+---
+# Create SABnzbd PVC for incomplete downloads
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: sabnzbd-incomplete-downloads-pvc
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi
+---
+# Create SABnzbd PVC for completed downloads
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: sabnzbd-downloads-pvc
+spec:
+  volumeName: sabnzbd-downloads-pv
+  storageClassName: ""
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 6Ti # Dummy value

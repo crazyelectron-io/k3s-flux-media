@@ -1,0 +1,93 @@
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: &app qbittorrent
+        labels:
+          app: *app
+      spec:
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+        progressDeadlineSeconds: 300
+        replicas: 1
+        serviceName: *app
+        revisionHistoryLimit: 0
+        strategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        selector:
+          matchLabels:
+            app: *app
+        template:
+          metadata:
+            labels:
+              app: *app
+          spec:
+            initContainers:
+              # -- init containers to set permissions on incomplete-downloads folder
+              - name: init-qbt
+                image: debian:12.6-slim
+                command: ['sh', '-c', 'echo "Set permissions on incomplete-download folder" && chown -R 1000:1000 /incomplete-downloads && chmod -R 777 /incomplete-downloads']
+                volumeMounts:
+                  - name: qbt-incomplete
+                    mountPath: /incomplete-downloads
+            containers:
+              - name: *app
+                image: lscr.io/linuxserver/qbittorrent:4.6.5
+                imagePullPolicy: IfNotPresent
+                resources:
+                  limits:
+                    memory: "1024Mi"
+                    cpu: 500m
+                  requests:
+                    memory: "512Mi"
+                    cpu: 200m
+                # livenessProbe:
+                #   httpGet:
+                #     path: /
+                #     port: 8080
+                #   initialDelaySeconds: 60
+                #   periodSeconds: 30
+                ports:
+                  - name: qbt-web
+                    containerPort: 8080
+                  - name: qbt-tcp
+                    containerPort: 6881
+                    protocol: TCP
+                  - name: qbt-udp
+                    containerPort: 6881
+                    protocol: UDP
+                volumeMounts:
+                  - name: qbt-config
+                    mountPath: /config
+                  - mountPath: /downloads
+                    name: qbt-media
+                    subPath: usenet/complete
+                  - name: qbt-incomplete
+                    mountPath: /incomplete-downloads
+                env:
+                  - name: PUID
+                    value: "1000"
+                  - name: PGID
+                    value: "1000"
+                  - name: TZ
+                    value: Europe/Amsterdam
+                  - name: WEBUI_PORT
+                    value: "8080"
+                  - name: TORRENTING_PORT
+                    value: "6881"
+            volumes:
+              - name: qbt-config
+                persistentVolumeClaim:
+                  claimName: qbt-config-pvc
+              - name: qbt-media
+                persistentVolumeClaim:
+                  claimName: qbt-media-pvc
+              - name: qbt-incomplete
+                persistentVolumeClaim:
+                  claimName: qbt-incomplete-pvc
+            serviceName: *app
+            revisionHistoryLimit: 5

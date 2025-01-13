@@ -2,6 +2,17 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/kustomization.json
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: media
 resources:
   - ./namespace.yaml
+  - ./sabnzbd/kustomization-fluxCRD.yaml
+  # - ./qbittorrent/kustomization-fluxCRD.yaml
+  # - ./transmission/kustomization-fluxCRD.yaml
+  # - ./prowlarr/kustomization-fluxCRD.yaml
+  # - ./sonarr/kustomization-fluxCRD.yaml
+  # - ./radarr/kustomization-fluxCRD.yaml
+  # - ./readarr/kustomization-fluxCRD.yaml
+  # # - ./lidarr/kustomization-fluxCRD.yaml
+  # - ./bazarr/kustomization-fluxCRD.yaml
+  # - ./overseerr/kustomization-fluxCRD.yaml
+  # - ./calibre/kustomization-fluxCRD.yaml
+

@@ -1,0 +1,99 @@
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: &app bazarr
+        labels:
+          app: *app
+      spec:
+        progressDeadlineSeconds: 300
+        replicas: 1
+        serviceName: *app
+        revisionHistoryLimit: 0
+        strategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        selector:
+          matchLabels:
+            app: *app
+        template:
+          metadata:
+            labels:
+              app: *app
+          spec:
+            initContainers:
+              # init containers to create config.yaml config file
+              - name: init-bazarr
+                image: debian:12.6-slim
+                command: ['sh', '-c', 'mkdir -p /config/config && cp /config2/config.yaml /config/config/ && chown -R 1000:1000 /backup && chmod -R 777 /backup && ls -l / && echo "Init bazarr done"']
+                volumeMounts:
+                  - name: bazarr-config
+                    mountPath: /config
+                  - name: default-config
+                    mountPath: /config2
+                  - name: bazarr-backup
+                    mountPath: /backup
+            containers:
+              - name: *app
+                image: lscr.io/linuxserver/bazarr:v1.4.4-ls267
+                imagePullPolicy: IfNotPresent
+                resources:
+                  limits:
+                    memory: "1024Mi"
+                    cpu: 500m
+                  requests:
+                    memory: "256Mi"
+                    cpu: 100m
+                ports:
+                  - name: bazarr-port
+                    containerPort: 6767
+                startupProbe:
+                  httpGet:
+                    path: /bazarr/system/health
+                    port: bazarr-port
+                  failureThreshold: 3
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                livenessProbe:
+                  httpGet:
+                    path: /bazarr/system/status
+                    port: bazarr-port
+                  initialDelaySeconds: 60
+                  periodSeconds: 30
+                  timeoutSeconds: 3
+                volumeMounts:
+                  - name: bazarr-config
+                    mountPath: /config
+                  - name: bazarr-backup
+                    mountPath: /backup
+                  - mountPath: /movies
+                    name: bazarr-media
+                    readOnly: false
+                    subPath: media/movies
+                  - mountPath: /tv
+                    name: bazarr-media
+                    readOnly: false
+                    subPath: media/tv
+                env:
+                  - name: PUID
+                    value: "1000"
+                  - name: PGID
+                    value: "1000"
+                  - name: TZ
+                    value: Europe/Amsterdam
+            volumes:
+              - name: bazarr-config
+                persistentVolumeClaim:
+                  claimName: bazarr-config-pvc
+              - name: bazarr-media
+                persistentVolumeClaim:
+                  claimName: bazarr-media-pvc
+              - name: bazarr-backup
+                persistentVolumeClaim:
+                  claimName: bazarr-backup-pvc
+              - name: default-config
+                configMap:
+                  name: bazarr-config
+            serviceName: bazarr-app
+            revisionHistoryLimit: 0

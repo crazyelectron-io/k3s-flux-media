@@ -1,0 +1,86 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+  name: bazarr-media-pv
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 1Ti # Dummy value
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: bazarr.media
+    volumeAttributes:
+      source: '//${CONFIG_NFS_SERVER_IP_ADDRESS}/media'
+    nodeStageSecretRef:
+      name: smb-creds-media
+      namespace: kube-system
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: bazarr-media-pvc
+spec:
+  volumeName: bazarr-media-pv
+  storageClassName: ""
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Ti # Dummy value
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: bazarr-config-pvc
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Mi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+  name: bazarr-backup-pv
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 1Ti # Dummy value
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: bazarrbackup##
+    volumeAttributes:
+      source: '//${CONFIG_NFS_SERVER_IP_ADDRESS}/media-backup/bazarr'
+    nodeStageSecretRef:
+      name: smb-creds-media
+      namespace: kube-system
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: bazarr-backup-pvc
+spec:
+  volumeName: bazarr-backup-pv
+  storageClassName: ""
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Ti # Dummy value

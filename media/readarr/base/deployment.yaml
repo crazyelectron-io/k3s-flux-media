@@ -1,0 +1,100 @@
+---
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: &app readarr
+        labels:
+          app: *app
+      spec:
+        progressDeadlineSeconds: 300
+        replicas: 1
+        serviceName: *app
+        revisionHistoryLimit: 0
+        strategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        selector:
+          matchLabels:
+            app: *app
+        template:
+          metadata:
+            labels:
+              app: *app
+          spec:
+            initContainers:
+              - name: init-readarr
+                image: debian:12.6-slim
+                command: ['sh', '-c', 'echo "Copy config.xml file" && ls -al /config2 && cp /config2/config.xml /config/.']
+                volumeMounts:
+                  - name: readarr-config
+                    mountPath: /config
+                  - name: default-config
+                    mountPath: /config2
+            containers:
+              - name: readarr
+                image: lscr.io/linuxserver/readarr:nightly
+                imagePullPolicy: IfNotPresent
+                resources:
+                  limits:
+                    memory: "5128Mi"
+                    cpu: 500m
+                  requests:
+                    memory: "256Mi"
+                    cpu: 100m
+                ports:
+                  - name: readarr-port
+                    containerPort: 8787
+                startupProbe:
+                  httpGet:
+                    path: /readarr
+                    port: readarr-port
+                  failureThreshold: 6
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                livenessProbe:
+                  httpGet:
+                    path: '/readarr/api/v1/health?apikey=${SECRET_READARR_API_KEY}'
+                    port: readarr-port
+                    httpHeaders:
+                      - name: Accept
+                        value: application/json
+                  initialDelaySeconds: 20
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                volumeMounts:
+                  - name: readarr-config
+                    mountPath: /config
+                  - mountPath: /books
+                    name: readarr-media
+                    readOnly: false
+                    subPath: media/books
+                  - mountPath: /downloads
+                    name: readarr-media
+                    readOnly: false
+                    subPath: usenet/complete
+                  - name: readarr-backup
+                    mountPath: /backup
+                env:
+                  - name: PUID
+                    value: "1000"
+                  - name: PGID
+                    value: "1000"
+                  - name: TZ
+                    value: Europe/Amsterdam
+            volumes:
+              - name: readarr-config
+                persistentVolumeClaim:
+                  claimName: readarr-config-pvc
+              - name: readarr-media
+                persistentVolumeClaim:
+                  claimName: readarr-media-pvc
+              - name: readarr-backup
+                persistentVolumeClaim:
+                  claimName: readarr-backup-pvc
+              - name: default-config
+                configMap:
+                  name: readarr-config
+            serviceName: readarr-app
+            revisionHistoryLimit: 5

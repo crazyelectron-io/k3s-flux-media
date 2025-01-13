@@ -1,0 +1,63 @@
+#Create Calibre Persistent Volume for books SMB share
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   annotations:
+#     pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+#   name: calibre-library-pv
+# spec:
+#   persistentVolumeReclaimPolicy: Retain
+#   capacity:
+#     storage: 10Mi # Dummy value
+#   accessModes:
+#     - ReadWriteMany
+#   mountOptions:
+#     - dir_mode=0777
+#     - file_mode=0777
+#     - nobrl
+#   csi:
+#     driver: smb.csi.k8s.io
+#     volumeHandle: calibre.library
+#     volumeAttributes:
+#       source: '//${CONFIG_NFS_SERVER_IP_ADDRESS}/media'
+#     nodeStageSecretRef:
+#       name: smb-creds-media
+#       namespace: kube-system
+#
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: calibre-data-pvc
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 300Mi
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: calibre-web-pvc
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Mi
+---
+#Create Calibre Persistent Volume Claim for library
+# kind: PersistentVolumeClaim
+# apiVersion: v1
+# metadata:
+#   name: calibre-library-pvc
+# spec:
+#   storageClassName: longhorn
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 200Mi

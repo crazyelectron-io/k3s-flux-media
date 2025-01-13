@@ -1,0 +1,60 @@
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: &app overseerr
+        labels:
+          app: *app
+      spec:
+        progressDeadlineSeconds: 300
+        replicas: 1
+        serviceName: *app
+        revisionHistoryLimit: 0
+        strategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        selector:
+          matchLabels:
+            app: *app
+        template:
+          metadata:
+            labels:
+              app: *app
+          spec:
+            containers:
+              - name: *app
+                image: lscr.io/linuxserver/overseerr:1.33.2
+                imagePullPolicy: IfNotPresent
+                resources:
+                  limits:
+                    memory: "512Mi"
+                    cpu: 500m
+                  requests:
+                    memory: "256Mi"
+                    cpu: 100m
+                # livenessProbe:
+                #   httpGet:
+                #     path: /
+                #     port: 6767
+                #   initialDelaySeconds: 60
+                #   periodSeconds: 30
+                ports:
+                  - name: http
+                    containerPort: 5055
+                volumeMounts:
+                  - name: overseerr-config
+                    mountPath: /config
+                env:
+                  - name: PUID
+                    value: "1000"
+                  - name: PGID
+                    value: "1000"
+                  - name: TZ
+                    value: Europe/Amsterdam
+            volumes:
+              - name: overseerr-config
+                persistentVolumeClaim:
+                  claimName: overseerr-config-pvc
+            serviceName: *app
+            revisionHistoryLimit: 5

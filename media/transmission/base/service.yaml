@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transmission
+spec:
+  ports:
+    - name: torrent-web
+      port: 80
+      targetPort: 9091
+      protocol: TCP
+  selector:
+    app: transmission
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transmission-tcp
+  annotations:
+    metallb.universe.tf/allow-shared-ip: transmission-shared
+spec:
+  selector:
+    app: transmission
+  ports:
+  - port: 51413
+    targetPort: 51413
+    name: torrent-tcp
+    protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP: 10.100.0.27
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transmission-udp
+  annotations:
+    metallb.universe.tf/allow-shared-ip: transmission-shared
+spec:
+  selector:
+    app: transmission
+  ports:
+  - port: 51413
+    targetPort: 51413
+    name: torrent-udp
+    protocol: UDP
+  type: LoadBalancer
+  loadBalancerIP: 10.100.0.27

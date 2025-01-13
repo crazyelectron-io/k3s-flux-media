@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbt-svc
+spec:
+  ports:
+    - name: qbt-web
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: qbittorrent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbt-connect-tcp
+  annotations:
+    metallb.universe.tf/allow-shared-ip: qbt-shared
+spec:
+  selector:
+    app: qbittorrent
+  ports:
+  - port: 6881
+    targetPort: 6881
+    name: qbt-tcp
+    protocol: TCP
+  type: LoadBalancer
+  loadBalancerIP: 10.100.0.25
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbt-connect-udp
+  annotations:
+    metallb.universe.tf/allow-shared-ip: qbt-shared
+spec:
+  selector:
+    app: qbittorrent
+  ports:
+  - port: 6881
+    targetPort: 6881
+    name: qbt-udp
+    protocol: UDP
+  type: LoadBalancer
+  loadBalancerIP: 10.100.0.25

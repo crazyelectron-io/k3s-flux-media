@@ -1,0 +1,100 @@
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: &app radarr
+        labels:
+          app: *app
+      spec:
+        progressDeadlineSeconds: 300
+        replicas: 1
+        serviceName: *app
+        revisionHistoryLimit: 0
+        strategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        selector:
+          matchLabels:
+            app: *app
+        template:
+          metadata:
+            labels:
+              app: *app
+          spec:
+            initContainers:
+              # init containers to create config.xml config file
+              - name: init-radarr
+                image: debian:12.6-slim
+                command: ['sh', '-c', 'echo "Copy config.xml file" && ls -al /config2 && cp /config2/config.xml /config/.']
+                volumeMounts:
+                  - name: radarr-config
+                    mountPath: /config
+                  - name: default-config
+                    mountPath: /config2
+            containers:
+              - name: radarr
+                image: lscr.io/linuxserver/radarr:5.17.2
+                imagePullPolicy: IfNotPresent
+                resources:
+                  limits:
+                    memory: "2048Mi"
+                    cpu: 1000m
+                  requests:
+                    memory: "512Mi"
+                    cpu: 300m
+                ports:
+                  - name: radarr-port
+                    containerPort: 7878
+                startupProbe:
+                  httpGet:
+                    path: /radarr
+                    port: 7878
+                  failureThreshold: 6
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                livenessProbe:
+                  httpGet:
+                    path: /radarr/api/v3/health?apikey=${SECRET_RADARR_API_KEY}
+                    port: 7878
+                    httpHeaders:
+                      - name: Accept
+                        value: application/json
+                  initialDelaySeconds: 20
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                volumeMounts:
+                  - name: radarr-config
+                    mountPath: /config
+                  - mountPath: /movies
+                    name: radarr-media
+                    readOnly: false
+                    subPath: media/movies
+                  - mountPath: /downloads
+                    name: radarr-media
+                    readOnly: false
+                    subPath: usenet/complete
+                  - name: radarr-backup
+                    mountPath: /backup
+                env:
+                  - name: PUID
+                    value: "1000"
+                  - name: PGID
+                    value: "1000"
+                  - name: TZ
+                    value: Europe/Amsterdam
+            volumes:
+              - name: radarr-config
+                persistentVolumeClaim:
+                  claimName: radarr-config-pvc
+              - name: radarr-media
+                persistentVolumeClaim:
+                  claimName: radarr-media-pvc
+              - name: radarr-backup
+                persistentVolumeClaim:
+                  claimName: radarr-backup-pvc
+              - name: default-config
+                configMap:
+                  name: radarr-config
+            serviceName: *app
+            revisionHistoryLimit: 0

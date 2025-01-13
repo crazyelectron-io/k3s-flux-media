@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+  name: qbt-media-pv
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 10Mi # Dummy value
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: homenas.qbt
+    volumeAttributes:
+      source: '//${CONFIG_NFS_SERVER_IP_ADDRESS}/media'
+    nodeStageSecretRef:
+      name: smb-creds-media
+      namespace: kube-system
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: qbt-media-pvc
+spec:
+  volumeName: qbt-media-pv
+  storageClassName: ""
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Mi # Dummy value
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: qbt-config-pvc
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: qbt-incomplete-pvc
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Gi

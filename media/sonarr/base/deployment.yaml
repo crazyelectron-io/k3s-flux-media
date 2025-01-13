@@ -1,0 +1,98 @@
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: &app sonarr
+        labels:
+          app: *app
+      spec:
+        progressDeadlineSeconds: 300
+        replicas: 1
+        serviceName: *app
+        revisionHistoryLimit: 0
+        strategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        selector:
+          matchLabels:
+            app: *app
+        template:
+          metadata:
+            labels:
+              app: *app
+          spec:
+            initContainers:
+              - name: init-sonarr
+                image: debian:12.6-slim
+                command: ['sh', '-c', 'echo "Copy config.xml file" && ls -al /config2 && cp /config2/config.xml /config/.']
+                volumeMounts:
+                  - name: sonarr-config
+                    mountPath: /config
+                  - name: default-config
+                    mountPath: /config2
+            containers:
+              - name: *app
+                image: lscr.io/linuxserver/sonarr:4.0.9
+                imagePullPolicy: IfNotPresent
+                resources:
+                  limits:
+                    memory: "1024Mi"
+                    cpu: 1500m
+                  requests:
+                    memory: "256Mi"
+                    cpu: 300m
+                ports:
+                  - name: sonarr-port
+                    containerPort: 8989
+                startupProbe:
+                  httpGet:
+                    path: /sonarr
+                    port: sonarr-port
+                  failureThreshold: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                livenessProbe:
+                  httpGet:
+                    path: '/sonarr/api/v3/health?apikey=${SECRET_SONARR_API_KEY}'
+                    port: sonarr-port
+                    httpHeaders:
+                      - name: Accept
+                        value: application/json
+                  initialDelaySeconds: 20
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                volumeMounts:
+                  - name: sonarr-config
+                    mountPath: /config
+                  - name: sonarr-tv
+                    mountPath: /tv
+                  - name: sonarr-downloads
+                    mountPath: /downloads
+                  - name: sonarr-backup
+                    mountPath: /backup
+                env:
+                  - name: PUID
+                    value: "1000"
+                  - name: PGID
+                    value: "1000"
+                  - name: TZ
+                    value: Europe/Amsterdam
+            volumes:
+              - name: sonarr-config
+                persistentVolumeClaim:
+                  claimName: sonarr-config-pvc
+              - name: sonarr-tv
+                persistentVolumeClaim:
+                  claimName: sonarr-tv-pvc
+              - name: sonarr-downloads
+                persistentVolumeClaim:
+                  claimName: sonarr-downloads-pvc
+              - name: sonarr-backup
+                persistentVolumeClaim:
+                  claimName: sonarr-backup-pvc
+              - name: default-config
+                configMap:
+                  name: sonarr-config
+            serviceName: sonarr-app
+            revisionHistoryLimit: 0

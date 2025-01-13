@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bazarr-external
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: "Host(`media.${SECRET_DOMAIN_0}`) && PathPrefix(`/bazarr`)"
+      kind: Rule
+      services:
+        - name: bazarr-svc
+          port: 80
+  tls: {}

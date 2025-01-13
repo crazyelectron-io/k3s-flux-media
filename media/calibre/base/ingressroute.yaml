@@ -1,0 +1,32 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: calibre-strip-prefix
+spec:
+  stripPrefix:
+    prefixes:
+      - "/calibre"
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: calibre-external
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: "Host(`media.${SECRET_DOMAIN_0}}`) && PathPrefix(`/calibre`)"
+      kind: Rule
+      services:
+        - name: calibre-ui-svc
+          port: 80
+        # - name: calibre-admin-svc
+        #   port: 8081
+      # middlewares:
+      #   - name: default-headers
+        # - name: calibre-strip-prefix
+        #   namespace: "{{calibre_namespace}}"
+  tls: {}

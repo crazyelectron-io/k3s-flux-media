@@ -1,0 +1,86 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: &app sabnzbd
+  labels:
+    app: *app
+spec:
+  progressDeadlineSeconds: 300
+  replicas: 1
+  serviceName: *app
+  revisionHistoryLimit: 0
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: *app
+  template:
+    metadata:
+      labels:
+        app: *app
+    spec:
+      dnsPolicy: ClusterFirst
+      initContainers:
+        # -- init containers to create sabnzbd.ini config file
+        - name: init-sabnzbd
+          image: debian:stable
+          command: ['sh', '-c', 'echo "Copy sabnzbd.ini file" && ls -al /config2 && cp /config2/sabnzbd.ini /config/.']
+          volumeMounts:
+            - name: sabnzbd-config
+              mountPath: /config
+            - name: default-config
+              mountPath: /config2
+      containers:
+        - name: sabnzbd
+          image: lscr.io/linuxserver/sabnzbd:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "2048Mi"
+              cpu: 800m
+            requests:
+              memory: "1024Mi"
+              cpu: 300m
+          livenessProbe:
+            httpGet:
+              path: /api?mode=version
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          ports:
+            - name: nzb-web
+              containerPort: 8080
+          volumeMounts:
+            - name: sabnzbd-config
+              mountPath: /config
+            - name: sabnzbd-incomplete-downloads
+              mountPath: /incomplete-downloads
+            - name: sabnzbd-downloads
+              mountPath: /downloads
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: Europe/Amsterdam
+            - name: HOST_WHITELIST_ENTRIES
+              value: "media.${SECRET_DOMAIN_0},media.${SECRET_DOMAIN_0}/sabnzbd,sabnzbd-svc.media"
+      volumes:
+        - name: sabnzbd-config
+          persistentVolumeClaim:
+            claimName: sabnzbd-config-pvc
+        - name: default-config
+          configMap:
+            name: sabnzbd-config
+        - name: sabnzbd-incomplete-downloads
+          persistentVolumeClaim:
+            claimName: sabnzbd-incomplete-downloads-pvc
+        - name: sabnzbd-downloads
+          persistentVolumeClaim:
+            claimName: sabnzbd-downloads-pvc
+      serviceName: sabnzbd-app
+      revisionHistoryLimit: 0

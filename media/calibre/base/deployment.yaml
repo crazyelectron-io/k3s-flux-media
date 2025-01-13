@@ -1,0 +1,92 @@
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: &app calibre
+        labels:
+          app: *app
+      spec:
+        progressDeadlineSeconds: 300
+        replicas: 1
+        serviceName: *app
+        revisionHistoryLimit: 0
+        strategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        selector:
+          matchLabels:
+            app: *app
+        template:
+          metadata:
+            labels:
+              app: *app
+          spec:
+            containers:
+              - name: *app
+                image: lscr.io/linuxserver/calibre:7.14.0
+                imagePullPolicy: IfNotPresent
+                resources:
+                  limits:
+                    memory: "5128Mi"
+                    cpu: 500m
+                  requests:
+                    memory: "256Mi"
+                    cpu: 100m
+                ports:
+                  - name: calibre-port
+                    containerPort: 8080
+                  - name: admin-port
+                    containerPort: 8081
+                volumeMounts:
+                  - name: calibre-data
+                    mountPath: /config
+                    subPath: config
+                  - name: calibre-data
+                    mountPath: /plugins
+                    subPath: plugins
+                  - name: calibre-data
+                    mountPath: /upload
+                    subPath: upload
+                env:
+                  - name: TZ
+                    value: Europe/Amsterdam
+                  - name: PUID
+                    value: "1000"
+                  - name: PGID
+                    value: "1000"
+              - name: calibre-web
+                image: lscr.io/linuxserver/calibre-web:latest
+                imagePullPolicy: IfNotPresent
+                resources:
+                  limits:
+                    memory: 512Mi
+                    cpu: 400m
+                  requests:
+                    memory: 256Mi
+                    cpu: 100m
+                ports:
+                  - name: calibre-web
+                    containerPort: 8083
+                volumeMounts:
+                  - name: calibre-web-config
+                    mountPath: /config
+                  - name: calibre-data
+                    mountPath: /books
+                    subPath: "config/Calibre Library"
+                env:
+                  - name: TZ
+                    value: Europe/Amsterdam
+                  - name: PUID
+                    value: "1000"
+                  - name: PGID
+                    value: "1000"
+            volumes:
+              - name: calibre-data
+                persistentVolumeClaim:
+                  claimName: calibre-data-pvc
+              - name: calibre-web-config
+                persistentVolumeClaim:
+                  claimName: calibre-web-pvc
+            serviceName: *app
+            revisionHistoryLimit: 5

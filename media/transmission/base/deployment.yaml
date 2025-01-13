@@ -1,0 +1,96 @@
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: &app transmission
+        labels:
+          app: *app
+      spec:
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+        progressDeadlineSeconds: 300
+        replicas: 1
+        serviceName: *app
+        revisionHistoryLimit: 10
+        strategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        selector:
+          matchLabels:
+            app: *app
+        template:
+          metadata:
+            labels:
+              app: *app
+          spec:
+            # initContainers:
+            #   # -- init containers to set permissions on incomplete-downloads folder
+            #   - name: init-transmission
+            #     image: debian:12.6-slim
+            #     command: ['sh', '-c', 'echo "Set permissions on incomplete-download folder" && chown -R 1000:1000 /incomplete-downloads && chmod -R 777 /incomplete-downloads']
+            #     volumeMounts:
+            #       - name: transmission-incomplete
+            #         mountPath: /incomplete-downloads
+            containers:
+              - name: *app
+                image: lscr.io/linuxserver/transmission:latest
+                imagePullPolicy: IfNotPresent
+                resources:
+                  limits:
+                    memory: "1024Mi"
+                    cpu: 500m
+                  requests:
+                    memory: "512Mi"
+                    cpu: 200m
+                # livenessProbe:
+                #   httpGet:
+                #     path: /
+                #     port: 8080
+                #   initialDelaySeconds: 60
+                #   periodSeconds: 30
+                ports:
+                  - name: torrent-web
+                    containerPort: 8080
+                  - name: torrent-tcp
+                    containerPort: 51413
+                    protocol: TCP
+                  - name: torrent-udp
+                    containerPort: 51413
+                    protocol: UDP
+                volumeMounts:
+                  - name: transmission-config
+                    mountPath: /config
+                  - mountPath: /downloads
+                    name: transmission-media
+                    subPath: usenet/complete
+                  - name: transmission-incomplete
+                    mountPath: /incomplete-downloads
+                env:
+                  - name: PUID
+                    value: "1000"
+                  - name: PGID
+                    value: "1000"
+                  - name: TZ
+                    value: Europe/Amsterdam
+                  - name: WEBUI_PORT
+                    value: "8080"
+                  - name: TORRENTING_PORT
+                    value: "6881"
+                  - name: USER
+                    value: "admin"
+                  - name: PASS
+                    value: "adminadmin"
+            volumes:
+              - name: transmission-config
+                persistentVolumeClaim:
+                  claimName: transmission-config-pvc
+              - name: transmisison-media
+                persistentVolumeClaim:
+                  claimName: transmission-media-pvc
+              - name: transmission-incomplete
+                persistentVolumeClaim:
+                  claimName: transmission-incomplete-pvc
+            serviceName: *app
