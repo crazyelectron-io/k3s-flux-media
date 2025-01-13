@@ -16,5 +16,8 @@ spec:
   wait: true
   dependsOn:
     - name: kube-system-csi-driver-smb
+      namespace: flux-system
     - name: longhorn-system-longhorn
+      namespace: flux-system
     - name: traefik-traefik
+      namespace: flux-system
