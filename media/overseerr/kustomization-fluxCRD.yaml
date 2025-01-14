@@ -9,7 +9,7 @@ spec:
   path: ./media/overseerr/base
   sourceRef:
     kind: GitRepository
-    name: fmedia
+    name: media
     namespace: flux-system
   interval: 10m
   prune: true
