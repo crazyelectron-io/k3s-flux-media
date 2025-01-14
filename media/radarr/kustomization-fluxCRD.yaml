@@ -10,6 +10,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: media
+    namespace: flux-system
   interval: 2m
   prune: true
   wait: true
