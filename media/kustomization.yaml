@@ -8,7 +8,7 @@ resources:
   - ./sabnzbd/kustomization-fluxCRD.yaml
   # - ./qbittorrent/kustomization-fluxCRD.yaml
   # - ./transmission/kustomization-fluxCRD.yaml
-  # - ./prowlarr/kustomization-fluxCRD.yaml
+  - ./prowlarr/kustomization-fluxCRD.yaml
   # - ./sonarr/kustomization-fluxCRD.yaml
   # - ./radarr/kustomization-fluxCRD.yaml
   # - ./readarr/kustomization-fluxCRD.yaml
