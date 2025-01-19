@@ -22,6 +22,6 @@
             priority: 15
             services:
               - kind: Service
-                name: ak-outpost-authentik-embedded-outpost
+                name: ak-outpost-authentik-embedded-outpost.authentication-system.svc.cluster.local
                 port: 9000
         tls: {}
