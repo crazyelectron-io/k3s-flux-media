@@ -12,7 +12,7 @@
             match: "Host(`media.${SECRET_DOMAIN_0}`) && PathPrefix(`/sonarr`)"
             middlewares:
               - name: authentik
-                namesapce: authentication-system
+                namespace: authentication-system
             priority: 10
             services:
               - name: sonarr-svc
