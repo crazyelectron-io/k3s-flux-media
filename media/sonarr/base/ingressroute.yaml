@@ -8,9 +8,20 @@
         entryPoints:
           - websecure
         routes:
-          - match: "Host(`media.${SECRET_DOMAIN_0}`) && PathPrefix(`/sonarr`)"
-            kind: Rule
+          - kind: Rule
+            match: "Host(`media.${SECRET_DOMAIN_0}`) && PathPrefix(`/sonarr`)"
+            middlewares:
+              - name: authentik
+                namesapce: authentication-system
+            priority: 10
             services:
               - name: sonarr-svc
                 port: 80
+          - kind: Rule
+            match: "Host(`media.${SECRET_DOMAIN_0}`) && PathPrefix(`/sonarr/outpost.goauthentik.io/`)"
+            priority: 15
+            services:
+              - kind: Service
+                name: ak-outpost-authentik-embedded-outpost
+                port: 9000
         tls: {}
