@@ -21,7 +21,7 @@
             match: "Host(`media.${SECRET_DOMAIN_0}`) && PathPrefix(`/sonarr/outpost.goauthentik.io/`)"
             priority: 15
             services:
-              - name: ak-outpost-authentik-embedded-outpost.authentication-system.svc.cluster.local
+              - name: ak-outpost-authentik-embedded-outpost
                 namespace: authentication-system
                 port: 9000
         tls: {}
