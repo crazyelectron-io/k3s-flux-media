@@ -18,7 +18,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: "Host(`media.${SECRET_DOMAIN_0}}`) && PathPrefix(`/calibre`)"
+    - match: "Host(`media.${SECRET_DOMAIN_0}`) && PathPrefix(`/calibre`)"
       kind: Rule
       services:
         - name: calibre-ui-svc
