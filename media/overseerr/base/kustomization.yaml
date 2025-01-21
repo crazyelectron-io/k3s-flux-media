@@ -8,9 +8,3 @@ resources:
   - ./service.yaml
   - ./ingressroute.yaml
   - ./deployment.yaml
-# configMapGenerator:
-#   - name: overseerr-config
-#     files:
-#       - config.xml
-# generatorOptions:
-#   disableNameSuffixHash: true
