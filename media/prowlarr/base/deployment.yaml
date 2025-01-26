@@ -25,7 +25,7 @@ spec:
       initContainers:
         # init containers to create sabnzbd.iniconfig.xml config file
         - name: init-prowlarr
-          image: debian:12.6-slim
+          image: ${SECRET_HARBOR_URL}/debian:12.6-slim
           command: ['sh', '-c', 'echo "Copy config.xml file" && ls -al /config2 && cp /config2/config.xml /config/.']
           volumeMounts:
             - name: prowlarr-config
@@ -34,7 +34,7 @@ spec:
               mountPath: /config2
       containers:
         - name: prowlarr
-          image: lscr.io/linuxserver/prowlarr:1.29.2
+          image: ${SECRET_HARBOR_URL}/prowlarr:1.29.2
           imagePullPolicy: IfNotPresent
           resources:
             limits:

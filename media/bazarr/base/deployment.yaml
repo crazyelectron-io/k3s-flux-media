@@ -25,7 +25,7 @@
             initContainers:
               # init containers to create config.yaml config file
               - name: init-bazarr
-                image: debian:12.6-slim
+                image: ${SECRET_HARBOR_URL}/debian:12.6-slim
                 command: ['sh', '-c', 'mkdir -p /config/config && cp /config2/config.yaml /config/config/ && chown -R 1000:1000 /backup && chmod -R 777 /backup && ls -l / && echo "Init bazarr done"']
                 volumeMounts:
                   - name: bazarr-config
@@ -36,7 +36,7 @@
                     mountPath: /backup
             containers:
               - name: *app
-                image: lscr.io/linuxserver/bazarr:v1.4.4-ls267
+                image: ${SECRET_HARBOR_URL}/bazarr:v1.4.4-ls267
                 imagePullPolicy: IfNotPresent
                 resources:
                   limits:

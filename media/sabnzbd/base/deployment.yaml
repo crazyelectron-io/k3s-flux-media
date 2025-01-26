@@ -26,7 +26,7 @@ spec:
       initContainers:
         # -- init containers to create sabnzbd.ini config file
         - name: init-sabnzbd
-          image: debian:stable
+          image: ${SECRET_HARBOR_URL}/debian:stable
           command: ['sh', '-c', 'echo "Copy sabnzbd.ini file" && ls -al /config2 && cp /config2/sabnzbd.ini /config/.']
           volumeMounts:
             - name: sabnzbd-config
@@ -35,7 +35,7 @@ spec:
               mountPath: /config2
       containers:
         - name: sabnzbd
-          image: lscr.io/linuxserver/sabnzbd:latest
+          image: ${SECRET_HARBOR_URL}/sabnzbd:latest
           imagePullPolicy: IfNotPresent
           resources:
             limits:

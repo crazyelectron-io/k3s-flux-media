@@ -24,7 +24,7 @@
           spec:
             containers:
               - name: *app
-                image: lscr.io/linuxserver/calibre:7.14.0
+                image: ${SECRET_HARBOR_URL}/calibre:7.14.0
                 imagePullPolicy: IfNotPresent
                 resources:
                   limits:
@@ -56,7 +56,7 @@
                   - name: PGID
                     value: "1000"
               - name: calibre-web
-                image: lscr.io/linuxserver/calibre-web:latest
+                image: ${SECRET_HARBOR_URL}/calibre-web:latest
                 imagePullPolicy: IfNotPresent
                 resources:
                   limits:
