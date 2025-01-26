@@ -24,7 +24,7 @@
           spec:
             initContainers:
               - name: init-sonarr
-                image: debian:12.6-slim
+                image: ${SECRET_HARBOR_URL}/debian:12.6-slim
                 command: ['sh', '-c', 'echo "Copy config.xml file" && ls -al /config2 && cp /config2/config.xml /config/.']
                 volumeMounts:
                   - name: sonarr-config
@@ -33,7 +33,7 @@
                     mountPath: /config2
             containers:
               - name: *app
-                image: lscr.io/linuxserver/sonarr:4.0.12
+                image: ${SECRET_HARBOR_URL}/sonarr:4.0.12
                 imagePullPolicy: IfNotPresent
                 resources:
                   limits:

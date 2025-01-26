@@ -25,7 +25,7 @@
           spec:
             initContainers:
               - name: init-readarr
-                image: ${CONFIG_REGISTRY_URL}/debian:12.6-slim
+                image: ${SECRET_HARBOR_URL}/debian:12.6-slim
                 command: ['sh', '-c', 'echo "Copy config.xml file" && ls -al /config2 && cp /config2/config.xml /config/.']
                 volumeMounts:
                   - name: readarr-config
@@ -34,7 +34,7 @@
                     mountPath: /config2
             containers:
               - name: readarr
-                image: ${CONFIG_REGISTRY_URL}/readarr:nightly
+                image: ${SECRET_HARBOR_URL}/readarr:nightly
                 imagePullPolicy: IfNotPresent
                 resources:
                   limits:

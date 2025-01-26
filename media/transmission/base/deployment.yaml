@@ -36,7 +36,7 @@
             #         mountPath: /incomplete-downloads
             containers:
               - name: *app
-                image: ${CONFIG_REGISTRY_URL}/transmission:latest
+                image: ${SECRET_HARBOR_URL}/transmission:latest
                 imagePullPolicy: IfNotPresent
                 resources:
                   limits:
