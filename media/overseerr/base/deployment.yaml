@@ -24,7 +24,7 @@
           spec:
             containers:
               - name: *app
-                image: lscr.io/linuxserver/overseerr:1.33.2
+                image: ${CONFIG_REGISTRY_URL}/overseerr:1.33.2
                 imagePullPolicy: IfNotPresent
                 resources:
                   limits:
