@@ -26,7 +26,7 @@ spec:
       initContainers:
         # -- init containers to create sabnzbd.ini config file
         - name: init-sabnzbd
-          image: ${SECRET_HARBOR_URL}/debian:stable
+          image: ${SECRET_HARBOR_URL}/debian:12.6-slim
           command: ['sh', '-c', 'echo "Copy sabnzbd.ini file" && ls -al /config2 && cp /config2/sabnzbd.ini /config/.']
           volumeMounts:
             - name: sabnzbd-config
